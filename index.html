@@ -29,6 +29,12 @@
     $("#message").val(""); //空白にする
     s.emit("C_to_S_broadcast", {value:msg}); // サーバへ送信
   }
+
+  function sendHelloMessage() {
+    var msg = "Hello!!";
+    //$("#message").val(""); //空白にする
+    s.emit("C_to_S_hellomessage", {value:msg});//サーバへ送信
+  }
  
   //jqueryでメッセージを追加
   function addMessage (value,color,size) {
@@ -51,6 +57,7 @@
     <input type="text" class="text" style="width:95%; padding:10px" id="message"/>
     <input type="submit" class="button" style="padding:10px" onclick="sendMessage();" value="みんなに送信" />
     <input type="submit" class="button" style="padding:10px" onclick="sendBroadcast();" value="自分以外に送信" />
+    <input type="submit" class="button" style="padding:10px" onclick="sendHelloMessage();" value="Hello!!" />
   </form>
 </div>
 </body>
