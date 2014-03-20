@@ -1,8 +1,9 @@
 //http://www.tettori.net/post/852/#t4
 //モジュールを取得している
-var http = require("http"); //http関連のモジュールを取得
+var http     = require("http"); //http関連のモジュールを取得
 var socketio = require("socket.io"); //ソケット通信
-var fs = require("fs");//ファイルの読み書き
+var fs       = require("fs");//ファイルの読み書き
+var port     = process.env.PORT || 3000;
 
 // ここがポイントです
 // サーバー実装の前に、エラーハンドリングを記載します。
@@ -18,7 +19,7 @@ var server = http.createServer(function(req, res) {
      //index.htmlを表示
      res.end(output);
      //2014-3-20この場所をherokuで通信出来るように変更
-}).listen(process.env.PORT, process.env.IP);
+}).listen(port);
 //listen(process.env.VMC_APP_PORT || 3000);//webサーバで利用するportを自動で選択（リモート or ローカル）
  
 //サーバとソケットを結びつける
