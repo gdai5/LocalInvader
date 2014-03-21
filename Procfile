@@ -1,1 +1,1 @@
-web: node ./LocalInvader/app.js
+web: node LocalInvader/app.js
