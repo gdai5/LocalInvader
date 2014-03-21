@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>TESTGeolocation</title>
+
+<form name="timer">
+<input type="button" value="スタート" onclick="startfnc2()"><br>
+<input type="text" name="moji" size="30" value="">
+</form>
+
+<script type="text/javascript">
+
+function hyoji()
+{
+  //表示する文字
+  var str = "位置情報を取得しています";  
+
+  //テキストボックスの文字数
+  var cnt = document.timer.moji.value.length;
+
+  //文字が全部表示されているか確認
+  if ( cnt < 12 )
+  {
+    //現在より1文字多く切り出して表示
+    document.timer.moji.value = str.substr(0,cnt+1);
+  }
+  else
+  {
+    //全て表示されたら、空文字に戻す
+    document.timer.moji.value = "";
+  }
+}
+
+/*******ここから位置情報取得のやつ*******/
+if (navigator.geolocation) {
+	  //Geolocation APIを利用できる環境向けの処理
+　　　　　　	document.open();
+　　　　	document.write("成功");
+　　　　    　　document.close();
+} else {
+	  //Geolocation APIを利用できない環境向けの処理
+		document.open();
+		document.write("失敗");
+	    document.close();
+	}
+	
+//ユーザーの現在の位置情報を取得
+navigator.geolocation.getCurrentPosition(successCallback, errorCallback);
+
+/***** ユーザーの現在の位置情報を取得 *****/
+function successCallback(position) {
+  var gl_text = "緯度：" + position.coords.latitude + "<br>";
+    gl_text += "経度：" + position.coords.longitude + "<br>";
+    gl_text += "高度：" + position.coords.altitude + "<br>";
+    gl_text += "緯度・経度の誤差：" + position.coords.accuracy + "<br>";
+    gl_text += "高度の誤差：" + position.coords.altitudeAccuracy + "<br>";
+    gl_text += "方角：" + position.coords.heading + "<br>";
+    gl_text += "速度：" + position.coords.speed + "<br>";
+  document.getElementById("show_result").innerHTML = gl_text;
+}
+
+/***** 位置情報が取得できない場合 *****/
+function errorCallback(error) {
+  var err_msg = "";
+  switch(error.code)
+  {
+    case 1:
+      err_msg = "位置情報の利用が許可されていません";
+      break;
+    case 2:
+      err_msg = "デバイスの位置が判定できません";
+      break;
+    case 3:
+      err_msg = "タイムアウトしました";
+      break;
+  }
+  document.getElementById("show_result").innerHTML = err_msg;
+  //デバッグ用→　document.getElementById("show_result").innerHTML = error.message;
+}
+
+function startfnc(){
+	//関数succcessCallback()を1000ミリ間隔で呼び出す
+  	setInterval("successCallback(position)", 500);
+}
+
+function startfnc2()
+{
+    //関数hyoji()を1000ミリ秒間隔で呼び出す
+    setInterval("hyoji()",500);
+}
+
+</script>
+
+</head>
+<body>
+<p>おはようございます</p>
+<p>あなたの現在位置</p>
+<div id="show_result"></div> 
+</body>
+</html>
