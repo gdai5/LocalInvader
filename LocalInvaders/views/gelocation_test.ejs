@@ -10,12 +10,16 @@
   
     //var s = io.connect(); //リモート
     var s = io.connect('http://localhost:3000'); //ローカル
+    var id;
+    
     
     //サーバから受け取るイベント
-    s.on("connect", function () {});  // 接続時
+    s.on("connect", function () {
+      id = s.socket.transport.sessid;
+    });  // 接続時
     s.on("disconnect", function (client) {});  // 切断時
     s.on("S_to_C_location", function (data) {
-      updateLocation(data.value);
+      updateLocation(data);
     });
 
     /*******ここから位置情報取得のやつ*******/
@@ -39,8 +43,8 @@
     /***** ユーザーの現在の位置情報を取得 *****/
     //成功した場合はただ、positionオブジェクトを返す
     function successCallback(position) {
-      //サーバへ緯度と軽度を送信
-      s.emit("C_to_S_location", {value:position});
+      //サーバにIDと緯度と経度を渡している
+      s.emit("C_to_S_location", {position:position, id:id});
       //var gl_text = "緯度：" + position.coords.latitude + "<br>";
       //gl_text += "経度：" + position.coords.longitude + "<br>";
       //document.getElementById("show_result").innerHTML = gl_text;
@@ -60,33 +64,24 @@
           err_msg = "タイムアウトしました";
           break;
       }
-      addErrorMessage(err_msg);
+      //addErrorMessage(err_msg);
       //デバッグ用→　document.getElementById("show_result").innerHTML = error.message;
     }
     
     //jqueryでメッセージを追加
-    function updateLocation(position) {
+    function updateLocation(data) {
       $("#msg_list").prepend("<div class='location'>" 
+        + "ID："
+        + data.id
+        + "<br>"
         + "緯度：" 
-        + position.coords.latitude 
+        + data.position.coords.latitude 
         + "<br>" 
         + "経度：" 
-        + position.coords.longitude 
+        + data.position.coords.longitude 
         + "<br>"
         + "</div>");
     }
-
-    //function startfnc(){
-      //関数succcessCallback()を1000ミリ間隔で呼び出す
-      //setInterval("successCallback(position)", 1000);
-      //function addLocation(value, color)
-    //}
-    
-    //jqueryでメッセージを追加
-    function addErrorMessage (value,color,size) {
-      var msg = value.replace( /[!@$%<>'"&|]/g, '' ); //タグ記号とかいくつか削除
-      $("#msg_list").prepend("<div class='msg'>" + msg + "</div>");
-    }    
 
   </script>
 </head>
@@ -96,7 +91,7 @@
   <p>おはようございます</p>
   <p>あなたの現在位置</p>
   <script>
-    setInterval("sendLocation()", 5000);
+    setInterval("sendLocation()", 3000);
   </script> 
 </body>
 </html>
