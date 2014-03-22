@@ -13,5 +13,5 @@ http.createServer(function(req, res){
   console.log("end");
 
   }).listen(8192);
-  console.log('http://hoge.org:8192/');
+  console.log('http://localhost:8192/');
 
