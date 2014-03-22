@@ -77,12 +77,15 @@ socket.broadcast.emit("S_to_C_message", {value:data.value});
 //何を打ち込んでも、必ずHelloと返してしまう
 socket.on("C_to_S_hellomessage", function (data) {
 //helloと返すだけ
+//このように表記している理由はクライアントで{value:data}と渡している
+//つまりこっちでは受け取った引数の形(例えば sample_dataなら sample_data.valueに必要なデータが入っている)
 socket.broadcast.emit("S_to_C_message", {value:data.value});
 });
 
 //緯度と経度を全てのユーザに伝える
+//
 socket.on("C_to_S_location", function (data) {
-  io.sockets.emit("S_to_C_location", {value:data.value});
+  io.sockets.emit("S_to_C_location", data);
 });
 
 
