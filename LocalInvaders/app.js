@@ -1,8 +1,6 @@
-
 /**
  * Module dependencies.
  */
-
 var express = require('express');
 var routes = require('./routes');
 //これを追加することで、ページ毎に読み込んでくるroutesの中を分けた
@@ -11,8 +9,9 @@ var geo = require('./routes/gelocation_test');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
-var socketio = require("socket.io"); //ソケット通信
+var socketio = require("socket.io");
 
+//ソケット通信
 var app = express();
 
 // all environments
@@ -29,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
 if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
+    app.use(express.errorHandler());
 }
 
 //routes/index.jsを見に行っている
@@ -39,60 +38,61 @@ app.get('/gelocation_test', geo.gelocation_test);
 app.get('/users', user.list);
 
 //ここでサーバを立ち上げている
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+var server = http.createServer(app).listen(app.get('port'), function() {
+    console.log('Express server listening on port ' + app.get('port'));
 });
 
 //ここがポイントです
 //サーバー実装の前に、エラーハンドリングを記載します。
 process.on('uncaughtException', function(err) {
- console.log(err);
+    console.log(err);
 });
 
 //サーバとソケットを結びつける
 var io = socketio.listen(server);
- 
-//2014-3-20これを入れないと、herokuでwebsocketが使えない模様
-io.configure(function(){
-      io.set('transports', ['xhr-polling']);
-          io.set('polling duration', 10);
-});
 
 //クライアントからアクションを受け取る窓口
 //socketにはクライアントからのアクションが入っている
-io.sockets.on("connection", function (socket) {
-//メッセージ送信（送信者にも送られる）
-//C_to_Smessageはイベント名
-socket.on("C_to_S_message", function (data) {
-//自分を含む全ての人に送信
-io.sockets.emit("S_to_C_message", {value:data.value});
-});
+io.sockets.on("connection", function(socket) {
+    //メッセージ送信（送信者にも送られる）
+    //C_to_Smessageはイベント名
+    socket.on("C_to_S_message", function(data) {
+        //自分を含む全ての人に送信
+        io.sockets.emit("S_to_C_message", {
+            value : data.value
+        });
+    });
 
-//ブロードキャスト（送信者以外の全員に送信）
-socket.on("C_to_S_broadcast", function (data) {
-//自分以外の人に送信
-socket.broadcast.emit("S_to_C_message", {value:data.value});
-});
+    //ブロードキャスト（送信者以外の全員に送信）
+    socket.on("C_to_S_broadcast", function(data) {
+        //自分以外の人に送信
+        socket.broadcast.emit("S_to_C_message", {
+            value : data.value
+        });
+    });
 
-//何を打ち込んでも、必ずHelloと返してしまう
-socket.on("C_to_S_hellomessage", function (data) {
-//helloと返すだけ
-//このように表記している理由はクライアントで{value:data}と渡している
-//つまりこっちでは受け取った引数の形(例えば sample_dataなら sample_data.valueに必要なデータが入っている)
-socket.broadcast.emit("S_to_C_message", {value:data.value});
-});
+    //何を打ち込んでも、必ずHelloと返してしまう
+    socket.on("C_to_S_hellomessage", function(data) {
+        //helloと返すだけ
+        //このように表記している理由はクライアントで{value:data}と渡している
+        //つまりこっちでは受け取った引数の形(例えば sample_dataなら sample_data.valueに必要なデータが入っている)
+        socket.broadcast.emit("S_to_C_message", {
+            value : data.value
+        });
+    });
 
-//緯度と経度を全てのユーザに伝える
-//
-socket.on("C_to_S_location", function (data) {
-  io.sockets.emit("S_to_C_location", data);
-});
+    //緯度と経度を全てのユーザに伝える
+    //
+    socket.on("C_to_S_location", function(data) {
+        io.sockets.emit("S_to_C_location", data);
+    });
 
-
-//切断したときに送信
-//connect, message, disconnectは予め用意されているイベント
-socket.on("disconnect", function () {
-	  //alert("disconnect from server");
-  io.sockets.emit("S_to_C_message", {value:"user disconnected"});
-});
+    //切断したときに送信
+    //connect, message, disconnectは予め用意されているイベント
+    socket.on("disconnect", function() {
+        //alert("disconnect from server");
+        io.sockets.emit("S_to_C_message", {
+            value : "user disconnected"
+        });
+    });
 });
