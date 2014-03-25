@@ -6,6 +6,7 @@ var routes = require('./routes');
 //これを追加することで、ページ毎に読み込んでくるroutesの中を分けた
 var chat = require('./routes/chatroom');
 var geo = require('./routes/gelocation_test');
+var game = require('./routes/game');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
@@ -20,11 +21,39 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.favicon());
 app.use(express.logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.bodyParser({
+    uploadDir : "./uploads"
+}));
 app.use(express.methodOverride());
-app.use(app.router);
+//ここでpublicディレクトリ利用設定
 app.use(express.static(path.join(__dirname, 'public')));
+//mongodb
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://hiraro:2580wktk@oceanic.mongohq.com:10054/local_invader', function(err) {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+});
+//セッション関係
+//mongodbにストアしてます
+var MongoStore = require('connect-mongo')(express);
+app.use(express.cookieParser('secretdeathyo!'));
+app.use(express.session({
+    key : 'sid',
+    secret : 'secretdeathyo!',
+    store : new MongoStore({
+        db : 'local_invader',
+        host : 'oceanic.mongohq.com',
+        port : 10054,
+        username : 'hiraro',
+        password : '2580wktk'
+    })
+}));
+app.use(app.router);
+//クロスサイトリクエストフォージェリ対策
+app.use(express.csrf());
+
 
 // development only
 if ('development' == app.get('env')) {
@@ -36,6 +65,9 @@ app.get('/', routes.index);
 app.get('/chatroom', chat.chatroom);
 app.get('/gelocation_test', geo.gelocation_test);
 app.get('/users', user.list);
+app.get('/game', game.main);
+app.get('/game/form', game.testForm);
+app.post('/game/form', game.testFormPost);
 
 //ここでサーバを立ち上げている
 var server = http.createServer(app).listen(app.get('port'), function() {
@@ -96,3 +128,33 @@ io.sockets.on("connection", function(socket) {
         });
     });
 });
+
+//socket.ioの設定
+io.set("heartbeats", true);
+//ゲームに関するメッセージング
+var game = io.of("/game");
+game.on("connection", function(socket) {
+    //参加時の処理…
+    var sessid = socket.transport.sessid;
+
+    socket.on("locationUpdate", function(data) {
+        //位置情報定期更新
+        socket.broadcast.emit("locationUpdate", data);
+    }).on("newPlayer", function(data, callback) {
+        //プレイヤー参加
+        socket.broadcast.emit("newPlayer", data);
+        callback();
+    }).on("playerDie", function(data) {
+        //プレイヤー死亡
+    }).on("newTarget", function(data) {
+        //新エリア出現
+    }).on("clearTarget", function(data) {
+        //エリア消滅
+    }).on("disconnect", function() {
+        //死亡予告
+        socket.broadcast.emit("playerDie", {
+            id : sessid
+        });
+    });
+});
+
